@@ -67,7 +67,9 @@ onMounted(() => {
             </template>
             <template v-slot:second> </template>
             <template v-slot:github>
-                <a href="https://github.com/pccathome/earth" target="_blank" class="underline-offset-2">GitHub</a>
+                <a href="https://github.com/pccathome/pulsar-signals" target="_blank" class="underline-offset-2"
+                    >GitHub</a
+                >
             </template>
         </FooterInfo>
     </PageWrap>
