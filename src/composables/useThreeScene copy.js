@@ -1,11 +1,11 @@
 import * as THREE from 'three'
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js'
 import { onBeforeUnmount, ref, computed } from 'vue'
-import { map, lerp } from '../utils/math.js'
 
-// 引入抽出的線條和平面模組
-import { createLine, createLineGeometry } from './useThreeLine.js'
-import { createPlane, createPlaneGeometry } from './useThreePlane.js'
+import vertexShader from '../shaders/line/vertex.glsl'
+import fragmentShader from '../shaders/line/fragment.glsl'
+import planeFragmentShader from '../shaders/plane/fragment.glsl'
+import { map, lerp } from '../utils/math.js'
 
 export default function useThreeScene(webglRef) {
     const scene = new THREE.Scene()
@@ -43,19 +43,41 @@ export default function useThreeScene(webglRef) {
         linesCount = ref(96)
         linesList = computed(() => Array.from({ length: linesCount.value }, (_, i) => i))
 
-        // 使用抽出的函數創建幾何體
-        lineGeometry = createLineGeometry()
-        planeGeometry = createPlaneGeometry()
+        lineGeometry = new THREE.BoxGeometry(5.5, 0.03, 0.02, 128, 1, 1)
+        planeGeometry = new THREE.PlaneGeometry(5.5, 1.5, 128, 1)
 
         group = new THREE.Group()
 
         linesList.value.forEach((_, i) => {
-            // 使用抽出的函數創建線條
-            const { line, uniforms } = createLine(i, lineGeometry)
+            const uniforms = {
+                uOffset: { value: i * 11 },
+                uStrength: { value: 1.5 },
+                uTime: { value: 0 }
+            }
+
+            const line = new THREE.Mesh(
+                lineGeometry,
+                new THREE.ShaderMaterial({
+                    vertexShader,
+                    fragmentShader,
+                    uniforms
+                })
+            )
+
+            line.position.z = -i * 0.095
             group.add(line)
 
-            // 使用抽出的函數創建平面
-            const { plane } = createPlane(i, planeGeometry, uniforms)
+            const plane = new THREE.Mesh(
+                planeGeometry,
+                new THREE.ShaderMaterial({
+                    vertexShader,
+                    fragmentShader: planeFragmentShader,
+                    uniforms,
+                    side: THREE.DoubleSide
+                })
+            )
+            plane.position.z = -i * 0.095
+            plane.position.y = -0.75
             group.add(plane)
 
             // position center
